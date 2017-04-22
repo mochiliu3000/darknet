@@ -1,0 +1,5 @@
+Train path requirement:
+See data.c fill_truth_detection
+An image folder called images or JPEGImages.
+A label folder called labels.
+File extension should be JPEG not jpeg
