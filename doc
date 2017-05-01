@@ -3,3 +3,4 @@ See data.c fill_truth_detection
 An image folder called images or JPEGImages.
 A label folder called labels.
 File extension should be JPEG not jpeg
+Change the cfg file to fit your own needs. For reference: https://github.com/AlexeyAB/darknet#how-to-use
