@@ -1,0 +1,5 @@
+classes= 4
+train  = /home/sleepywyn/Dev/GitRepo/Sealion/data/train.txt
+names = /home/sleepywyn/Dev/GitRepo/Sealion/data/sealion.names
+backup = backup
+

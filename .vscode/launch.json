@@ -8,7 +8,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/darknet",
             // "args": ["detector", "train", "cfg/voc.data", "cfg/yolo-voc.cfg", "darknet19_448.conv.23"],
-            "args": ["detector", "train", "cfg/sealion.data", "cfg/yolo-voc.cfg", "darknet19_448.conv.23"],
+            "args": ["detector", "train", "cfg/sealion.data", "cfg/sealion.2.0.cfg", "darknet19_448.conv.23"],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
             "environment": [],
