@@ -7,7 +7,6 @@
 #include "cuda.h"
 #include "blas.h"
 #include "connected_layer.h"
-#include "data.h"
 
 extern void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *filename, int top);
 extern void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh);
@@ -349,6 +348,32 @@ void denormalize_net(char *cfgfile, char *weightfile, char *outfile)
     save_weights(net, outfile);
 }
 
+void mkimg(char *cfgfile, char *weightfile, int h, int w, int num, char *prefix)
+{
+    network net = load_network(cfgfile, weightfile, 0);
+    image *ims = get_weights(net.layers[0]);
+    int n = net.layers[0].n;
+    int z;
+    for(z = 0; z < num; ++z){
+        image im = make_image(h, w, 3);
+        fill_image(im, .5);
+        int i;
+        for(i = 0; i < 100; ++i){
+            image r = copy_image(ims[rand()%n]);
+            rotate_image_cw(r, rand()%4);
+            random_distort_image(r, 1, 1.5, 1.5);
+            int dx = rand()%(w-r.w);
+            int dy = rand()%(h-r.h);
+            ghost_image(r, im, dx, dy);
+            free_image(r);
+        }
+        char buff[256];
+        sprintf(buff, "%s/gen_%d", prefix, z);
+        save_image(im, buff);
+        free_image(im);
+    }
+}
+
 void visualize(char *cfgfile, char *weightfile)
 {
     network net = parse_network_cfg(cfgfile);
@@ -396,20 +421,9 @@ int main(int argc, char **argv)
     } else if (0 == strcmp(argv[1], "detector")){
         run_detector(argc, argv);
     } else if (0 == strcmp(argv[1], "detect")){
-
         float thresh = find_float_arg(argc, argv, "-thresh", .24);
-        char *path = argv[5];
-        char** file_names = get_labels(path);
-        // char *filename = (argc > 4) ? argv[4]: 0;
-        // test_detector("cfg/coco.data", argv[2], argv[3], filename, thresh, .5);
-        test_detector(argv[2], argv[3], argv[4], file_names, thresh, .5);
-        free(file_names);
-        int namesLen = -1;
-        // while (file_names[++namesLen] != NULL) {
-        //     free(file_names[namesLen]);
-        // }
-        // free(file_names);
-
+        char *filename = (argc > 4) ? argv[4]: 0;
+        test_detector("cfg/coco.data", argv[2], argv[3], filename, thresh, .5);
     } else if (0 == strcmp(argv[1], "cifar")){
         run_cifar(argc, argv);
     } else if (0 == strcmp(argv[1], "go")){
@@ -470,6 +484,8 @@ int main(int argc, char **argv)
         average(argc, argv);
     } else if (0 == strcmp(argv[1], "visualize")){
         visualize(argv[2], (argc > 3) ? argv[3] : 0);
+    } else if (0 == strcmp(argv[1], "mkimg")){
+        mkimg(argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), argv[7]);
     } else if (0 == strcmp(argv[1], "imtest")){
         test_resize(argv[2]);
     } else {
