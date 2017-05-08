@@ -598,7 +598,14 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     char *input = buff;
     int j;
     float nms=.4;
-    while(1){
+
+    // int file_num = sizeof(file_names) / sizeof(file_names[0]);
+    // for(int i=0; i < file_num; i++){
+    //     char* filename = file_names[i];
+    int namesLen = -1;
+    while (file_names[++namesLen] != NULL) {
+        char* filename = file_names[namesLen];
+    // while(1){
         if(filename){
             strncpy(input, filename, 256);
         } else {
@@ -648,7 +655,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         free_image(sized);
         free(boxes);
         free_ptrs((void **)probs, l.w*l.h*l.n);
-        if (filename) break;
+        //if (filename) break;
     }
 }
 
