@@ -711,7 +711,7 @@ void test_detector_for_prediction(char *datacfg, char *cfgfile, char *weightfile
         get_region_boxes(l, im.w, im.h, net.w, net.h, thresh, probs, boxes, 0, 0, hier_thresh, 1);
         if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         //else if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, nms);
-        draw_detections(im, l.w*l.h*l.n, thresh, boxes, probs, names, alphabet, l.classes);
+        draw_detections_for_prediction(im, l.w*l.h*l.n, thresh, boxes, probs, names, alphabet, l.classes);
 //         if(outfile){
 //             save_image(im, outfile);
 //         }
