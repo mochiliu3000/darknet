@@ -581,10 +581,13 @@ void validate_detector_recall(char *cfgfile, char *weightfile)
 }
 
 //will be customized for our own detector
-void validate_sealion_detector(char *datacfg, char *cfgfile, char *weightfile)
+void validate_sealion_detector(char *datacfg, char *cfgfile, char *weightfile, char *outdir)
 {
     list *options = read_data_cfg(datacfg);
     char *valid_images = option_find_str(options, "valid", "data/train.list");
+    char *name_list = option_find_str(options, "names", "data/names.list");
+    char **names = get_labels(name_list);
+    image **alphabet = load_alphabet();
 
     network net = parse_network_cfg(cfgfile);
     if(weightfile){
@@ -609,7 +612,7 @@ void validate_sealion_detector(char *datacfg, char *cfgfile, char *weightfile)
     int m = plist->size;
     int i=0;
 
-    float thresh = .001;
+    float thresh = .24;
     float iou_thresh = .5;
     float nms = .4;
 
@@ -624,8 +627,18 @@ void validate_sealion_detector(char *datacfg, char *cfgfile, char *weightfile)
         image sized = resize_image(orig, net.w, net.h);
         char *id = basecfg(path);
         network_predict(net, sized.data);
-        get_region_boxes(l, sized.w, sized.h, net.w, net.h, thresh, probs, boxes, 1, 0, .5, 1);
+ //       get_region_boxes(l, sized.w, sized.h, net.w, net.h, thresh, probs, boxes, 1, 0, .5, 1);
+        get_region_boxes(l, sized.w, sized.h, net.w, net.h, thresh, probs, boxes, 0, 0, .24, 1);
+
         if (nms) do_nms(boxes, probs, l.w*l.h*l.n, 1, nms);
+        if(outdir){
+            // char *buf = malloc(sizeof(outdir) + 5);
+            char buf[100];
+            draw_detections(orig, l.w*l.h*l.n, thresh, boxes, probs, names, alphabet, l.classes);
+            sprintf(buf, "%s/%d", outdir, i);
+            save_image(orig, buf);
+            // free(buf);
+        }
 
         char labelpath[4096];
         find_replace(path, "images", "labels", labelpath);
@@ -869,7 +882,7 @@ void run_detector(int argc, char **argv)
     else if(0==strcmp(argv[2], "train")) train_detector(datacfg, cfg, weights, gpus, ngpus, clear);
     else if(0==strcmp(argv[2], "valid")) validate_detector(datacfg, cfg, weights, outfile);
     else if(0==strcmp(argv[2], "valid2")) validate_detector_flip(datacfg, cfg, weights, outfile);
-    else if(0==strcmp(argv[2], "validsealion")) validate_sealion_detector(datacfg, cfg, weights);
+    else if(0==strcmp(argv[2], "validsealion")) validate_sealion_detector(datacfg, cfg, weights, outfile);
     else if(0==strcmp(argv[2], "recall")) validate_detector_recall(cfg, weights);
     else if(0==strcmp(argv[2], "demo")) {
         list *options = read_data_cfg(datacfg);
