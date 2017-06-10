@@ -607,7 +607,8 @@ void validate_sealion_detector(char *datacfg, char *cfgfile, char *weightfile, c
     int j, k;
     box *boxes = calloc(l.w*l.h*l.n, sizeof(box));
     float **probs = calloc(l.w*l.h*l.n, sizeof(float *));
-    for(j = 0; j < l.w*l.h*l.n; ++j) probs[j] = calloc(classes, sizeof(float *));
+    // for(j = 0; j < l.w*l.h*l.n; ++j) probs[j] = calloc(classes, sizeof(float *));
+    for(j = 0; j < l.w*l.h*l.n; ++j) probs[j] = calloc(l.classes + 1, sizeof(float *));
 
     int m = plist->size;
     int i=0;
@@ -624,13 +625,15 @@ void validate_sealion_detector(char *datacfg, char *cfgfile, char *weightfile, c
     for(i = 0; i < m; ++i){
         char *path = paths[i];
         image orig = load_image_color(path, 0, 0);
-        image sized = resize_image(orig, net.w, net.h);
+        image sized = letterbox_image(orig, net.w, net.h);
         char *id = basecfg(path);
-        network_predict(net, sized.data);
+        float *X = sized.data;
+        network_predict(net, X);
  //       get_region_boxes(l, sized.w, sized.h, net.w, net.h, thresh, probs, boxes, 1, 0, .5, 1);
-        get_region_boxes(l, sized.w, sized.h, net.w, net.h, thresh, probs, boxes, 0, 0, .24, 1);
+        get_region_boxes(l, orig.w, orig.h, net.w, net.h, thresh, probs, boxes, 0, 0, .24, 1);
 
-        if (nms) do_nms(boxes, probs, l.w*l.h*l.n, 1, nms);
+        // if (nms) do_nms(boxes, probs, l.w*l.h*l.n, 1, nms);
+        if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         if(outdir){
             // char *buf = malloc(sizeof(outdir) + 5);
             char buf[100];
@@ -674,6 +677,8 @@ void validate_sealion_detector(char *datacfg, char *cfgfile, char *weightfile, c
         free_image(orig);
         free_image(sized);
     }
+    free(boxes);
+    free_ptrs((void **)probs, l.w*l.h*l.n);
 }
 
 void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, char *outfile, int fullscreen)
